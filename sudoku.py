@@ -1,6 +1,9 @@
+NORMAL = "N"
+CENTRE = "C"
+TOP = "T"
+
 class InputError(Exception):
     pass
-
 
 class Game(object):
     def __init__(self, positions):
@@ -8,11 +11,11 @@ class Game(object):
         self.__create_board(positions)
 
     def __create_board(self, positions):
-        self.initial_board = {(i, j): None for i in range(9) for j in range(9)}
+        self.initial_board = {(i, j): (None,None) for i in range(9) for j in range(9)}
         for p in positions:
             if len(p) != 3:
                 raise InputError(str(p) + " is not length 3")
-            self.initial_board[(p[0], p[1])] = p[2]
+            self.initial_board[(p[0], p[1])] = (NORMAL,p[2])
             self.initial_cells.add((p[0], p[1]))
         self.board = self.initial_board.copy()
 
@@ -40,10 +43,10 @@ class Game(object):
         return (set(numbers) == all_nums, all_nums.difference(numbers))
 
     def __check_row(self, r):
-        return self.__check_zone([self.board[(r, j)] for j in range(9)])
+        return self.__check_zone([self.board[(r, j)][1] for j in range(9) if self.board[(r,j)][0] == NORMAL])
 
     def __check_column(self, c):
-        return self.__check_zone([self.board[(i, c)] for i in range(9)])
+        return self.__check_zone([self.board[(i, c)][1] for i in range(9) if self.board[(i,c)][0] == NORMAL])
 
     def __check_block(self, x, y):
-        return self.__check_zone([self.board[(3 * x + i, 3 * y + j)] for i in range(3) for j in range(3)])
+        return self.__check_zone([self.board[(3 * x + i, 3 * y + j)][1] for i in range(3) for j in range(3) if self.board[(3 * x + i, 3 * y + j)][0] == NORMAL])

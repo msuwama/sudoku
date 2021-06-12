@@ -2,7 +2,7 @@
 # UI class for the sudoku puzzle app
 import tkinter as tk
 import tkinter.messagebox
-from sudoku import Game
+from sudoku import Game, NORMAL, CENTRE, TOP
 
 bigfont = ("Helvetica", 28)
 smallfont = ("Helvetica", 12)
@@ -43,14 +43,14 @@ class SudokuUI(tk.Frame):
             for j in range(9):
                 if (i, j) in self.board.initial_cells:
                     e = tk.Label(self.grid_canvas, bg="white", cursor="hand2",
-                                 text=str(self.board.initial_board[(i, j)]), font=bigfont)
+                                 text=str(self.board.initial_board[(i, j)][1]), font=bigfont)
                 else:
                     var = tk.StringVar()
                     self.board_vars[(i, j)] = var
-                    e = tk.Label(self.grid_canvas, textvariable=var, fg="blue", bg="white", cursor="hand2",
-                                 font=bigfont)
+                    e = tk.Label(self.grid_canvas, textvariable=var, fg="navy", bg="white", cursor="hand2", font=bigfont)
                 e.bind("<Button-1>", self.__cell_clicked)
                 e.grid(row=2 * i + 1, column=2 * j + 1, sticky="nesw")
+                e.config(wraplength=50)
                 self.cells[(i, j)] = e
         # Draw the grid lines
         for i in range(10):
@@ -64,9 +64,9 @@ class SudokuUI(tk.Frame):
         self.button_frame.pack(side=tk.LEFT, padx=20)
         self.inputType = tk.StringVar()
         self.inputType.set("normal")
-        tk.Radiobutton(self.button_frame, text="Normal", variable=self.inputType, value="normal").pack(anchor=tk.W)
-        tk.Radiobutton(self.button_frame, text="Centre", variable=self.inputType, value="centre").pack(anchor=tk.W)
-        tk.Radiobutton(self.button_frame, text="Corner", variable=self.inputType, value="corner").pack(anchor=tk.W)
+        tk.Radiobutton(self.button_frame, text="Normal", variable=self.inputType, value=NORMAL).pack(anchor=tk.W)
+        tk.Radiobutton(self.button_frame, text="Centre", variable=self.inputType, value=CENTRE).pack(anchor=tk.W)
+        tk.Radiobutton(self.button_frame, text="Top", variable=self.inputType, value=TOP).pack(anchor=tk.W)
         self.clear_button = tk.Button(self.button_frame, text="Clear", command=self.__clear)
         self.clear_button.pack(fill=tk.BOTH, side=tk.LEFT)
         self.check_button = tk.Button(self.button_frame, text="Check", command=self.__check)
@@ -119,16 +119,34 @@ class SudokuUI(tk.Frame):
     def __update_cell(self, c):
         if self.cursor:
             coord = self.__cell_cursor()
+            int_c = int(c)
             if coord not in self.board.initial_cells:
-                if self.inputType.get() == "normal":
-                    self.cells[coord].config(anchor=tk.CENTER, font=bigfont)
-                elif self.inputType.get() == "centre":
-                    self.cells[coord].config(anchor=tk.CENTER, font=smallfont)
-                elif self.inputType.get() == "corner":
-                    self.cells[coord].config(anchor=tk.NW, font=smallfont)
-                self.board_vars[coord].set(c)
-                self.board.board[coord] = int(c)
+                if self.inputType.get() == NORMAL:
+                    self.board.board[coord] = (NORMAL, int_c)
+                elif self.inputType.get() == CENTRE:
+                    if self.board.board[coord][0] != CENTRE:
+                        self.board.board[coord] = (CENTRE, set([int_c]))
+                    else:
+                        self.board.board[coord][1].symmetric_difference_update([int_c])
+                elif self.inputType.get() == TOP:
+                    if self.board.board[coord][0] != TOP:
+                        self.board.board[coord] = (TOP, set([int_c]))
+                    else:
+                        self.board.board[coord][1].symmetric_difference_update([int_c])
+                self.__update_cell_UI(coord)
 
+    def __update_cell_UI(self, coord):
+        status, val = self.board.board[coord]
+        if status == NORMAL:
+            self.cells[coord].config(anchor=tk.CENTER, font=bigfont, fg="navy")
+            self.board_vars[coord].set(val)
+        elif status == CENTRE:
+            self.cells[coord].config(anchor=tk.CENTER, font=smallfont, fg="blue")
+            self.board_vars[coord].set(" ".join(sorted([str(e) for e in val])))
+        elif status == TOP:
+            self.cells[coord].config(anchor=tk.N, font=smallfont, fg="blue")
+            self.board_vars[coord].set(" ".join(sorted([str(e) for e in val])))
+    
     def __cell_cursor(self):
         return self.cursor.grid_info()["row"] // 2, self.cursor.grid_info()["column"] // 2
 
