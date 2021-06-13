@@ -62,8 +62,7 @@ class SudokuUI(tk.Frame):
     def __draw_buttons(self):
         self.button_frame = tk.Frame(self)
         self.button_frame.pack(side=tk.LEFT, padx=20)
-        self.inputType = tk.StringVar()
-        self.inputType.set("normal")
+        self.inputType = tk.StringVar(self.button_frame, NORMAL)
         tk.Radiobutton(self.button_frame, text="Normal", variable=self.inputType, value=NORMAL).pack(anchor=tk.W)
         tk.Radiobutton(self.button_frame, text="Centre", variable=self.inputType, value=CENTRE).pack(anchor=tk.W)
         tk.Radiobutton(self.button_frame, text="Top", variable=self.inputType, value=TOP).pack(anchor=tk.W)
