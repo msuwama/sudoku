@@ -63,9 +63,9 @@ class SudokuUI(tk.Frame):
         self.button_frame = tk.Frame(self)
         self.button_frame.pack(side=tk.LEFT, padx=20)
         self.inputType = tk.StringVar(self.button_frame, NORMAL)
-        tk.Radiobutton(self.button_frame, text="Normal", variable=self.inputType, value=NORMAL).pack(anchor=tk.W)
-        tk.Radiobutton(self.button_frame, text="Centre", variable=self.inputType, value=CENTRE).pack(anchor=tk.W)
-        tk.Radiobutton(self.button_frame, text="Top", variable=self.inputType, value=TOP).pack(anchor=tk.W)
+        tk.Radiobutton(self.button_frame, text="Normal(n)", variable=self.inputType, value=NORMAL).pack(anchor=tk.W)
+        tk.Radiobutton(self.button_frame, text="Centre(c)", variable=self.inputType, value=CENTRE).pack(anchor=tk.W)
+        tk.Radiobutton(self.button_frame, text="Top(t)", variable=self.inputType, value=TOP).pack(anchor=tk.W)
         self.clear_button = tk.Button(self.button_frame, text="Clear", command=self.__clear)
         self.clear_button.pack(fill=tk.BOTH, side=tk.LEFT)
         self.check_button = tk.Button(self.button_frame, text="Check", command=self.__check)
@@ -81,35 +81,29 @@ class SudokuUI(tk.Frame):
         new["relief"] = "solid"
 
     def __key_bind(self):
-        self.bind('<Left>', self.__left)
-        self.bind('<Right>', self.__right)
-        self.bind('<Up>', self.__up)
-        self.bind('<Down>', self.__down)
+        self.bind('<Left>', lambda event: self.__movement("left"))
+        self.bind('<Right>', lambda event: self.__movement("right"))
+        self.bind('<Up>', lambda event: self.__movement("up"))
+        self.bind('<Down>', lambda event: self.__movement("down"))
+        self.bind('<n>', lambda event: self.__change_input_type(NORMAL))
+        self.bind('<c>', lambda event: self.__change_input_type(CENTRE))
+        self.bind('<t>', lambda event: self.__change_input_type(TOP))
         self.bind('<Key>', self.__key_pressed)
 
-    def __left(self, event):
+    def __movement(self, direction):
         if self.cursor:
             i, j = self.__cell_cursor()
-            if j != 0:  # check if we can go left
+            if direction == "left" and  j != 0:  # check if we can go left
                 self.__move_cursor(self.cells[(i, j - 1)])
-
-    def __right(self, event):
-        if self.cursor:
-            i, j = self.__cell_cursor()
-            if j != 8:  # check if we can go left
+            elif direction == "right" and j != 8:  # check if we can go right
                 self.__move_cursor(self.cells[(i, j + 1)])
-
-    def __up(self, event):
-        if self.cursor:
-            i, j = self.__cell_cursor()
-            if i != 0:  # check if we can go left
+            elif direction == "up" and i != 0:  # check if we can go up
                 self.__move_cursor(self.cells[(i - 1, j)])
-
-    def __down(self, event):
-        if self.cursor:
-            i, j = self.__cell_cursor()
-            if i != 8:  # check if we can go left
+            elif direction == "down" and i != 8:  # check if we can go down
                 self.__move_cursor(self.cells[(i + 1, j)])
+                
+    def __change_input_type(self, input_type):
+        self.inputType.set(input_type)
 
     def __key_pressed(self, event):
         if event.char in list("123456789"):
