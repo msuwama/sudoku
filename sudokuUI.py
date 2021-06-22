@@ -2,6 +2,7 @@
 # UI class for the sudoku puzzle app
 import tkinter as tk
 import tkinter.messagebox
+from tkinter import filedialog
 from sudoku import Game, NORMAL, CENTRE, TOP
 
 bigfont = ("Helvetica", 28)
@@ -10,22 +11,36 @@ smallfont = ("Helvetica", 12)
 
 class SudokuUI(tk.Frame):
     def __init__(self, parent, size, positions):
-        self.board = Game(positions)
-        self.board_vars = {}
         tk.Frame.__init__(self, parent)
+        self.size = size
         self.parent = parent
         self.parent.title("Sudoku")
-        self.pack(fill=tk.BOTH, padx=50, pady=50)
-        self.__draw_grid(size)
+        self.__define_menu()
         self.cursor = None
         self.__key_bind()
-        self.focus_set()
-        self.__draw_buttons()
-
-    def __draw_grid(self, size):
+        self.pack(fill=tk.BOTH, padx=50, pady=50)
         self.grid_canvas = tk.Canvas(self)
         self.grid_canvas.pack(anchor="center", side=tk.LEFT)
+        
+        self.__new_board(positions)
+        
+        self.__draw_buttons()
+        self.focus_set()
 
+    def __new_board(self, positions):
+        self.board = Game(positions)
+        self.board_vars = {}
+        self.grid_canvas.delete("all")
+        self.__draw_grid(self.size)
+        
+    def __open_board(self):
+        self.parent.filename = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("text files","*.txt"),("all files","*.*")))
+        f = open(self.parent.filename, "r")
+        positions = eval(f.read())
+        f.close()
+        self.__new_board(positions)
+        
+    def __draw_grid(self, size):
         # set up the grid. Even i's are the lines and odd i's are the cells
         for i in range(19):
             # make the line thicker for the border of 3x3
@@ -71,6 +86,23 @@ class SudokuUI(tk.Frame):
         self.check_button = tk.Button(self.button_frame, text="Check", command=self.__check)
         self.check_button.pack(fill=tk.BOTH, side=tk.RIGHT)
 
+    def __define_menu(self):
+        menu_bar = tk.Menu(self.parent)
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="New Ctrl+N", command=(lambda: self.__new_board([])))
+        file_menu.add_command(label="Open Ctrl+O", command=self.__open_board)
+        #file_menu.add_command(label="Save", command=placeholder)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.parent.quit)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+        
+        #help_menu = tk.Menu(menu_bar, tearoff=0)
+        #help_menu.add_command(label="Help Index", command=placeholder)
+        #help_menu.add_command(label="About...", command=placeholder)
+        #menu_bar.add_cascade(label="Help", menu=help_menu)
+
+        self.parent.config(menu=menu_bar)
+
     def __cell_clicked(self, event):
         self.__move_cursor(event.widget)
 
@@ -88,6 +120,8 @@ class SudokuUI(tk.Frame):
         self.bind('<n>', lambda event: self.__change_input_type(NORMAL))
         self.bind('<c>', lambda event: self.__change_input_type(CENTRE))
         self.bind('<t>', lambda event: self.__change_input_type(TOP))
+        self.bind('<Control-n>', lambda event: self.__new_board([]))
+        self.bind('<Control-o>', lambda event: self.__open_board())
         self.bind('<Key>', self.__key_pressed)
 
     def __movement(self, direction):
@@ -152,3 +186,4 @@ class SudokuUI(tk.Frame):
 
     def __check(self):
         tk.messagebox.showinfo(message=self.board.check_win()[1])
+        

@@ -11,3 +11,5 @@ Import tkinter and SudokuUI from sudokuUI. See example.py for a example.
 - [ ] Add option to select multiple cells with dragging or shift/ctrl
 - [ ] Add other rules like killer or chess sudoku
 - [ ] Add solving capability
+- [ ] Add menu bar
+- [ ] Convert to standalone exe
